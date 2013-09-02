@@ -1,0 +1,65 @@
+#INCLUDE<STDIO.H>
+#INCLUDE<STDLIB.H>
+#INCLUDE<STRING.H>
+
+#DEFINE BUFSIZE 1024
+#DEFINE SLEN 50
+
+VOID APPEND(FILE *,FILE *);
+
+INT MAIN()
+{
+    FILE *FA,*FS;
+    INT FILES = 0;
+    CHAR FILE_APP[SLEN],FILE_SRC[SLEN];
+
+    PUTS("ENTER NAME OF DESTINATION FILE:");
+    GETS(FILE_APP);
+    IF((FA = FOPEN(FILE_APP,"A")) == NULL)
+    {
+        FPRINTF(STDERR,"CAN'T OPEN FILE %S.\N",FILE_APP);
+        EXIT(1);
+    }
+    IF(SETVBUF(FA,NULL,_IOFBF,BUFSIZE) != 0)
+    {
+        FPRINTF(STDERR,"CAN'T SET BUFFER FOR FILE %S\N",FILE_APP);
+        EXIT(1);
+    }
+    PUTS("ENTER THE NAME OF FIRST SOURCE FILE:");
+    WHILE(GETS(FILE_SRC) != NULL && FILE_SRC[0] != '\0')
+    {
+        IF(STRCMP(FILE_APP,FILE_SRC) == 0)
+        {
+            FPUTS("CAN'T APPEND FILE TO ITSELF\N",STDOUT);
+        }
+        ELSE IF((FS = FOPEN(FILE_SRC,"R")) == NULL)
+        {
+            FPUTS("CAN'T OPEN SRC FILE\N",STDERR);
+        }
+        ELSE
+        {
+            IF(SETVBUF(FS,NULL,_IOFBF,BUFSIZE) != 0)
+            {
+                FPRINTF(STDERR,"CAN'T SET BUFFER FOR FILE %S\N",FILE_SRC);
+                FCLOSE(FS);
+                CONTINUE;
+            }
+            APPEND(FA,FS);
+            FCLOSE(FS);
+            FILES++;
+            PRINTF("FILE %S APPENDED.\N",FILE_SRC);
+            PUTS("NEXT FILE(EMPTY LINE TO QUIT)");
+        }
+    }
+    PRINTF("DONE,%D FILES APPENDED.\N",FILES);
+    FCLOSE(FA);
+    RETURN 0;
+}
+
+VOID APPEND(FILE *FA,FILE *FS)
+{
+    SIZE_T BYTES;
+    STATIC CHAR BUFFER[BUFSIZE];
+    WHILE((BYTES = FREAD(BUFFER,SIZEOF(CHAR),BUFSIZE,FS)) > 0)
+        FWRITE(BUFFER,SIZEOF(CHAR),BYTES,FA);
+}
